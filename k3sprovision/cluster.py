@@ -1,4 +1,5 @@
 import json
+import re
 from ansible.vars.manager import VariableManager
 from ansible.parsing.dataloader import DataLoader
 from ansible.inventory.manager import InventoryManager
@@ -49,9 +50,9 @@ class Cluster:
         ]
         result_stdout = Helper.run_shell(" ".join(cmd), output_return = True)
         try:
-            start_index = result_stdout.find('{')
-            if start_index != -1:
-                facts = json.loads(result_stdout[start_index:])
+            json_matches = re.findall(r'({.*})', result_stdout, re.DOTALL)
+            if json_matches:
+                facts = json.loads(json_matches[0])
             else:
                 Helper.log_error(f"Failed to gather facts for host: { hostname }. Bad result stdout for { ' '.join(cmd) }: { result_stdout }")
                 raise Exception(f"Failed to gather facts for host: { hostname }. Bad result stdout for { ' '.join(cmd) }: { result_stdout }")
